@@ -22,6 +22,7 @@ function addItem(e) {
     itemList.appendChild(li);
 
     itemInput.value = '';
+    checkUI();
 }
 
 function removeItem(e) {
@@ -30,6 +31,7 @@ function removeItem(e) {
             e.target.parentElement.parentElement.remove();
         }
     }
+    checkUI();
 }
 
 function clearAllItems(e) {
@@ -37,6 +39,19 @@ function clearAllItems(e) {
         while (itemList.firstChild) {
             itemList.removeChild(itemList.firstChild);
         }
+    }
+    checkUI();
+}
+
+function checkUI() {
+    const items = itemList.querySelectorAll('li');
+    const itemFilter = document.querySelector('.filter');
+    if (items.length === 0) {
+        clearAllBtn.style.display = 'none';
+        itemFilter.style.display = 'none';
+    } else {
+        clearAllBtn.style.display = 'block';
+        itemFilter.style.display = 'block';
     }
 }
 
@@ -58,5 +73,5 @@ function createIcon(classes) {
 itemForm.addEventListener('submit', addItem);
 itemList.addEventListener('click', removeItem);
 clearAllBtn.addEventListener('click', clearAllItems);
-
+checkUI();
 
