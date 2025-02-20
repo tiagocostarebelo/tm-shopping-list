@@ -5,34 +5,94 @@ const itemList = document.getElementById('item-list');
 const filterInput = document.getElementById('filter');
 const clearAllBtn = document.getElementById('clear');
 
-function addItem(e) {
-    e.preventDefault();
+function displayItems() {
+    const itemsFromStorage = getItemsFromStorage();
 
-    if (itemInput.value === '' || /^\d+$/.test(itemInput.value)) {
+    itemsFromStorage.forEach(item => addItemToDOM(item));
+
+    checkUI();
+}
+
+function onAddItemSubmit(e) {
+    e.preventDefault();
+    const newItem = itemInput.value;
+    if (newItem === '' || /^\d+$/.test(newItem)) {
         alert('Please input a valid item');
         itemInput.value = '';
         return;
     }
-    const formattedInput = itemInput.value.toLowerCase().charAt(0).toUpperCase() + itemInput.value.toLowerCase().slice(1);
-    const li = document.createElement('li');
-    li.appendChild(document.createTextNode(formattedInput));
 
-    const button = createButton('remove-item btn-link text-red');
-    li.appendChild(button);
+    const formattedItem = newItem.toLowerCase().charAt(0).toUpperCase() + newItem.toLowerCase().slice(1);
+    console.log(formattedItem)
+    //Create item DOM element
+    addItemToDOM(formattedItem);
 
-    itemList.appendChild(li);
+    //Add item to LocalStorage
+    addItemToStorage(formattedItem);
+
 
     itemInput.value = '';
     checkUI();
 }
 
-function removeItem(e) {
-    if (e.target.parentElement.classList.contains('remove-item')) {
-        if (confirm('Are you sure?')) {
-            e.target.parentElement.parentElement.remove();
-        }
+function addItemToDOM(item) {
+    const li = document.createElement('li');
+    li.appendChild(document.createTextNode(item));
+
+    const button = createButton('remove-item btn-link text-red');
+    li.appendChild(button);
+
+    itemList.appendChild(li);
+}
+
+function addItemToStorage(item) {
+    const itemsFromStorage = getItemsFromStorage();
+
+    // Adding new item to the array
+    itemsFromStorage.push(item);
+
+    // Converting to JSON string and set to local storage
+    localStorage.setItem('items', JSON.stringify(itemsFromStorage));
+}
+
+function getItemsFromStorage() {
+    let itemsFromStorage;
+    // Checking for existing items in Local Storage and store them as an array in the above variable
+    if (localStorage.getItem('items') === null) {
+        itemsFromStorage = [];
+    } else {
+        itemsFromStorage = JSON.parse(localStorage.getItem('items'));
     }
-    checkUI();
+
+    return itemsFromStorage;
+}
+
+function onClickItem(e) {
+    if (e.target.parentElement.classList.contains('remove-item')) {
+        removeItem(e.target.parentElement.parentElement);
+    }
+}
+
+function removeItem(item) {
+    if (confirm('Are you sure?')) {
+        //remove from DOM
+        item.remove();
+
+        //remove from Storage
+        removeItemFromStorage(item.textContent);
+
+        checkUI();
+    }
+}
+
+function removeItemFromStorage(item) {
+    let itemsFromStorage = getItemsFromStorage();
+
+    //Filter item to remove
+    itemsFromStorage = itemsFromStorage.filter((i) => i !== item);
+
+    //Re-set to localstorage
+    localStorage.setItem('items', JSON.stringify(itemsFromStorage));
 }
 
 function clearAllItems(e) {
@@ -41,6 +101,8 @@ function clearAllItems(e) {
             itemList.removeChild(itemList.firstChild);
         }
     }
+
+    localStorage.removeItem('items');
     checkUI();
 }
 
@@ -86,11 +148,18 @@ function createIcon(classes) {
     return icon;
 }
 
-itemForm.addEventListener('submit', addItem);
-itemList.addEventListener('click', removeItem);
-filterInput.addEventListener('input', filterItems);
-clearAllBtn.addEventListener('click', clearAllItems);
+//Initialize App
+function init() {
+    itemForm.addEventListener('submit', onAddItemSubmit);
+    itemList.addEventListener('click', onClickItem);
+    filterInput.addEventListener('input', filterItems);
+    clearAllBtn.addEventListener('click', clearAllItems);
+    document.addEventListener('DOMContentLoaded', displayItems);
 
-checkUI();
-filterItems();
+    checkUI();
+}
+
+init();
+
+
 
